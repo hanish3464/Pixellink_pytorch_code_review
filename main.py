@@ -108,6 +108,8 @@ def main():
     sampler = WeightedRandomSampler([1/len(dataset)]*len(dataset), config.batch_size, replacement=True)
     print("sampler: {}".format(len(sampler)))
     dataloader = DataLoader(dataset, batch_size=config.batch_size, sampler=sampler)
+    for i in dataloader: #뭔진 몰라도 4차원 tensor로 전환해서 뭔가를 하는듯 dataloader에 대해서 좀 더 알아봐야할듯
+        print("check dataloader : {}".format(i))
     ## dataloader = DataLoader(dataset, config.batch_size, shuffle=True)
     print("my_net call")
     my_net = net.Net()
