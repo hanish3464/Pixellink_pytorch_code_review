@@ -102,31 +102,34 @@ def train(epoch, iteration, dataloader, my_net, optimizer, optimizer2, device):
 
 def main():
     print("argpaser() ==> main()")
-    #print("config_image_dir : {}, config_labels_dir : {}".format(config.train_image_dir, config_train_image_dir))
+    ##print("config_image_dir : {}, config_labels_dir : {}".format(config.train_image_dir, config_train_image_dir))
     dataset = datasets.PixelLinkIC15Dataset(config.train_images_dir, config.train_labels_dir) #train_image와 ground_truch 경로가 전달.
+    print("dataset type : {}\ndataset info : {}\n dataset len : {}".format(type(dataset), dataset, len(dataset)))
     sampler = WeightedRandomSampler([1/len(dataset)]*len(dataset), config.batch_size, replacement=True)
+    print("sampler: {}".format(len(sampler)))
     dataloader = DataLoader(dataset, batch_size=config.batch_size, sampler=sampler)
-    # dataloader = DataLoader(dataset, config.batch_size, shuffle=True)
-#    my_net = net.Net()
+    ## dataloader = DataLoader(dataset, config.batch_size, shuffle=True)
+    print("my_net call")
+    my_net = net.Net()
 
- #   if config.gpu:
- #       device = torch.device("cuda:0")
- #       my_net = my_net.cuda()
-#       if config.multi_gpu:
- #           my_net = nn.DataParallel(my_net)
-    #else:
-#        device = torch.device("cpu")
+    if config.gpu:
+        device = torch.device("cuda:0")
+        my_net = my_net.cuda()
+        if config.multi_gpu:
+            my_net = nn.DataParallel(my_net)
+    else:
+        device = torch.device("cpu")
+    print("config.gpu: check success!")
+    ##nn.init.xavier_uniform_(list(my_net.parameters()))
+    my_net.apply(weight_init)
+    optimizer = optim.SGD(my_net.parameters(), lr=config.learning_rate, momentum=config.momentum, weight_decay=config.weight_decay)
+    ##if args.change:
+    optimizer2 = optim.SGD(my_net.parameters(), lr=config.learning_rate2, momentum=config.momentum, weight_decay=config.weight_decay)
+    ##else:
+    ##     optimizer2 = optim.SGD(my_net.parameters(), lr=config.learning_rate, momentum=config.momentum, weight_decay=config.weight_decay)
 
-    # nn.init.xavier_uniform_(list(my_net.parameters()))
-   # my_net.apply(weight_init)
-    #optimizer = optim.SGD(my_net.parameters(), lr=config.learning_rate, momentum=config.momentum, weight_decay=config.weight_decay)
-    # if args.change:
-    #optimizer2 = optim.SGD(my_net.parameters(), lr=config.learning_rate2, momentum=config.momentum, weight_decay=config.weight_decay)
-    # else:
-    #     optimizer2 = optim.SGD(my_net.parameters(), lr=config.learning_rate, momentum=config.momentum, weight_decay=config.weight_decay)
-
-  #  iteration = 0
- #   train(config.epoch, iteration, dataloader, my_net, optimizer, optimizer2, device)
+    iteration = 0
+    train(config.epoch, iteration, dataloader, my_net, optimizer, optimizer2, device) #여기서 training 시작
 
 if __name__ == "__main__":
     if args.retrain:
@@ -138,4 +141,4 @@ if __name__ == "__main__":
     else:
         print("argparser call test_on_train_dataset()")
         test_on_train_dataset()
-        test_model()
+        test_model(i)

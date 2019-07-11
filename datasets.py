@@ -33,6 +33,7 @@ class ICDAR15Dataset(Dataset):
             return {'image': self.read_image(self.images_dir, index), 'label': all_labels[index]}
 
     def read_image(self, dir, index):
+        print("read_imaga() call")
         index += 1
         filename = os.path.join(dir, "img_" + str(index) + ".jpg")
         image = ImgTransform.ReadImage(filename)
@@ -102,6 +103,7 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
                 'pixel_pos_weight': pixel_pos_weight, 'link_mask': link_mask}
 
     def test_data_transform(self, index):
+        print("test_transform() call")
         img = self.read_image(self.images_dir, index)
         labels = self.all_labels[index]
         labels, img, size = ImgTransform.ResizeImageWithLabel(labels, (512, 512), data=img)
@@ -110,6 +112,7 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
         return img, labels
 
     def train_data_transform(self, index):
+        print("train_data_transform() call")
         img = self.read_image(self.images_dir, index)
         labels = self.all_labels[index]
 
@@ -135,6 +138,7 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
 
     @staticmethod
     def filter_labels(labels, method):
+        print("@staticmethod filter_labels() call")
         """
         method: "msi" for min area ignore, "rai" for remain area ignore
         """

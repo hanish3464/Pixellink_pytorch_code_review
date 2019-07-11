@@ -5,6 +5,7 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         # TODO: modify padding
+        print("class net __init__")
         self.conv1_1 = nn.Conv2d(3, 64, 3, stride=1, padding=1)
         self.relu1_1 = nn.ReLU()
         self.conv1_2 = nn.Conv2d(64, 64, 3, stride=1, padding=1)
@@ -59,6 +60,7 @@ class Net(nn.Module):
         self.final_2 = nn.Conv2d(16, 16, 1, stride=1, padding=0)
 
     def forward(self, x):
+        print("class Net - forward() call")
         # print("forward1")
         x = self.pool1(self.relu1_2(self.conv1_2(self.relu1_1(self.conv1_1(x)))))
         # print("forward11")
