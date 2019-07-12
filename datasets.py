@@ -92,6 +92,7 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
         print("pixelLinkIC15Dataset __getitem__ call")
         # print(index, end=" ")
         if self.train:
+            print("index: {}".format(index))
             image, label = self.train_data_transform(index)
         else:
             image, label = self.test_data_transform(index)

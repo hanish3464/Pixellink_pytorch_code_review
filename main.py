@@ -105,11 +105,9 @@ def main():
     ##print("config_image_dir : {}, config_labels_dir : {}".format(config.train_image_dir, config_train_image_dir))
     dataset = datasets.PixelLinkIC15Dataset(config.train_images_dir, config.train_labels_dir) #train_image와 ground_truch 경로가 전달.
     print("dataset type : {}\ndataset info : {}\n dataset len : {}".format(type(dataset), dataset, len(dataset)))
-    sampler = WeightedRandomSampler([1/len(dataset)]*len(dataset), config.batch_size, replacement=True)
-    print("sampler: {}".format(len(sampler)))
-    dataloader = DataLoader(dataset, batch_size=config.batch_size, sampler=sampler)
-    for i in dataloader: #뭔진 몰라도 4차원 tensor로 전환해서 뭔가를 하는듯 dataloader에 대해서 좀 더 알아봐야할듯
-        print("check dataloader : {}".format(i))
+    sampler = WeightedRandomSampler([1/len(dataset)]*len(dataset), config.batch_size, replacement=True) #sampling 방식을 weighted로 
+    print("sampler: {}".format(len(sampler))) #sampling 을 batch size = 24이므로 24개
+    dataloader = DataLoader(dataset, batch_size=config.batch_size, sampler=sampler) #dataloader에서 pixelLinkIC15Dataset에 __getitem__                                                                                    #을 call 한다. 
     ## dataloader = DataLoader(dataset, config.batch_size, shuffle=True)
     print("my_net call")
     my_net = net.Net()
