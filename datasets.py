@@ -33,10 +33,10 @@ class ICDAR15Dataset(Dataset):
             return {'image': self.read_image(self.images_dir, index), 'label': all_labels[index]}
 
     def read_image(self, dir, index):
-        print("read_imaga() call")
         index += 1
-        filename = os.path.join(dir, "img_" + str(index) + ".jpg")
-        image = ImgTransform.ReadImage(filename)
+        print("read_image call! /index : {}".format(index)) 
+        filename = os.path.join(dir, "img_" + str(index) + ".jpg") #random으로 넘어온 index번호에 맞는 이미지를 디렉터리에서 불러온다.
+        image = ImgTransform.ReadImage(filename) #filename에 맞는디렉터리에가서 해당이미지를 불러온다.
         return image
 
     def read_datasets(self, dir, num):
@@ -89,14 +89,18 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
         # self.all_images = torch.Tensor(self.all_images)
 
     def __getitem__(self, index):
-        print("pixelLinkIC15Dataset __getitem__ call")
+        print("pixelLinkIC15Dataset __getitem__ call /index:" + str(index))
         # print(index, end=" ")
         if self.train:
+<<<<<<< HEAD
             print("index: {}".format(index))
+=======
+            print("train : __getitem__ -> train_data_transform(index)")
+>>>>>>> exp
             image, label = self.train_data_transform(index)
         else:
             image, label = self.test_data_transform(index)
-        image = torch.Tensor(image)
+        image = torch.Tensor(image) #CNN에서 사용하기 위해 torch.tensor르 이용해 image를 알맞게 바꿔준다.
 
         pixel_mask, neg_pixel_mask, pixel_pos_weight, link_mask = \
             PixelLinkIC15Dataset.label_to_mask_and_pixel_pos_weight(label, list(image.shape[1:]), version=config.version)
@@ -112,30 +116,30 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
         img = img.transpose(2, 0, 1)
         return img, labels
 
-    def train_data_transform(self, index):
+    def train_data_transform(self, index): #Data augmentation 부분. 같은 image Data를 활용하여 Data를 변형시켜서 수를 늘린다.
         print("train_data_transform() call")
-        img = self.read_image(self.images_dir, index)
-        labels = self.all_labels[index]
+        img = self.read_image(self.images_dir, index) #image 를 불러온다.
+        labels = self.all_labels[index] #거기에 맞는 ground_truth 를 불러온다.
 
-        rotate_rand = random.random() if config.use_rotate else 0
-        crop_rand = random.random() if config.use_crop else 0
+        rotate_rand = random.random() if config.use_rotate else 0 #Image를 회전한다.
+        crop_rand = random.random() if config.use_crop else 0 #Image의 특정영역으로 자른다. 
         # rotate
-        if rotate_rand > 0.5:
-            labels, img, angle = ImgTransform.RotateImageWithLabel(labels, data=img)
+        if rotate_rand > 0.5: #모든 이미지를 다 회전시키는 것이 아니라 50퍼센트의 확률로 선택받은 이미지만 회전한다.
+            labels, img, angle = ImgTransform.RotateImageWithLabel(labels, data=img) #여기서 회전된 이미지와 ground_truch, 각도를 얻음
         # crop
-        if crop_rand > 0.5:
-            scale = 0.1 + random.random() * 0.9
-            labels, img, img_range = ImgTransform.CropImageWithLabel(labels, data=img, scale=scale)
-            labels = PixelLinkIC15Dataset.filter_labels(labels, method="rai")
+        if crop_rand > 0.5: #마찬가지로 선택받은 이미지에 대해서 확률적으로 잘라낸다.
+            scale = 0.1 + random.random() * 0.9 #scale을 이런식으로 조절한다.
+            labels, img, img_range = ImgTransform.CropImageWithLabel(labels, data=img, scale=scale) #추가적으로 이미지 range도 얻음.
+            labels = PixelLinkIC15Dataset.filter_labels(labels, method="rai") #staticmethod 사용. 뭘하는지는 모르겠다.
         # resize
-        labels, img, size = ImgTransform.ResizeImageWithLabel(labels, (512, 512), data=img)
+        labels, img, size = ImgTransform.ResizeImageWithLabel(labels, (512, 512), data=img) #변형된 이미지를 512x512로 조정한다.
         # filter unsatifactory labels
         # labels = PixelLinkIC15Dataset.filter_labels(labels, method="msi")
         # zero mean
-        img = ImgTransform.ZeroMeanImage(img, config.r_mean, config.g_mean, config.b_mean)
-        # HWC to CHW
-        img = img.transpose(2, 0, 1)
-        return img, labels
+        img = ImgTransform.ZeroMeanImage(img, config.r_mean, config.g_mean, config.b_mean) #zeroMean을 하는게 뭔지 잘 모르겠다.
+        # HWC to CHW Height Width Channels 를 의미한다. caffe에선 CHW를 사용. tensorflow는 HWC 사용. 이미지 전처리를 위해 사용.
+        img = img.transpose(2, 0, 1) #3차원의 tensor를 conv에서 사용할때 Channel Height Width 순서로 사용하기 때문에 순서를 바꾼다.
+        return img, labels #0번(weight)가 중간으로 가고 2번(Channel)이 맨 앞으로 온다. 최종적으로 변형된 이미지와 g_t가 반환된다.
 
     @staticmethod
     def filter_labels(labels, method):
@@ -255,17 +259,18 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
             6 5 4
         """
         factor = 2 if version == "2s" else 4
-        ignore = label["ignore"]
-        label = label["coor"]
-        assert len(ignore) == len(label)
+        #print("label[ignore]: {}, label[coor]: {}".format(label['ignore'], label['coor']))
+        ignore = label["ignore"] #각ground_truth에서 잡혀지는 txt박스의 개수와 무시해도되는지 여부의 ignore가 있다.
+        label = label["coor"] #여기에는 4쌍의 박스 좌표쌍이 총 detected된 txt박스 개수만큼 존재한다.
+        assert len(ignore) == len(label) #둘의 개수가 같은지를 확인한다.
         label = np.array(label)
         label = label.reshape([-1, 1, 4, 2])
-        pixel_mask_size = [int(i / factor) for i in img_size]
-        link_mask_size = [neighbors, ] + pixel_mask_size
+        pixel_mask_size = [int(i / factor) for i in img_size] #img_size 512*512 / pixel_mask_size = 256*256
+        link_mask_size = [neighbors, ] + pixel_mask_size #link_mask_size 8*256*256
 
-        pixel_mask = np.zeros(pixel_mask_size, dtype=np.uint8)
-        pixel_weight = np.zeros(pixel_mask_size, dtype=np.float)
-        link_mask = np.zeros(link_mask_size, dtype=np.uint8)
+        pixel_mask = np.zeros(pixel_mask_size, dtype=np.uint8) #pixel_mask 256*256 , 0으로 초기화
+        pixel_weight = np.zeros(pixel_mask_size, dtype=np.float) #pixel_weight 256*256, 0으로 초기화
+        link_mask = np.zeros(link_mask_size, dtype=np.uint8) #link_mask 256*256*8, 8개짜리가 256개에 다시 256개
         # if label.shape[0] == 0:
             # return torch.LongTensor(pixel_mask), torch.Tensor(pixel_weight), torch.LongTensor(link_mask)
         label = (label / factor).astype(int) # label's coordinate value should be divided
@@ -273,15 +278,22 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
         # cv2.drawContours(pixel_mask, label, -1, 1, thickness=-1)
         real_box_num = 0
         # area_per_box = []
-        for i in range(label.shape[0]):
-            if not ignore[i]:
-                pixel_mask_tmp = np.zeros(pixel_mask_size, dtype=np.uint8)
-                cv2.drawContours(pixel_mask_tmp, label[i], -1, 1, thickness=-1)
-                pixel_mask += pixel_mask_tmp
-        neg_pixel_mask = (pixel_mask == 0).astype(np.uint8)
-        pixel_mask[pixel_mask != 1] = 0
+        #print("label.shape[0]: {} [1] :{} [2] : {} [3] : {}".format(label.shape[0], label.shape[1], label.shape[2], label.shape[3]))
+        for i in range(label.shape[0]): #label.shape[0]는 감지된 최종 box의 총 개수를 담고 있다.
+            if not ignore[i]: #실제로 ignore하면 안되는 것들 = 마땅히 detected되어야 하는 text area에 대해서...
+                pixel_mask_tmp = np.zeros(pixel_mask_size, dtype=np.uint8) #똑같은 mask_size로 하나 더 만든다.
+                print("pixel_mask_tmp : {}".format(sum(sum(pixel_mask_tmp))))
+                cv2.drawContours(pixel_mask_tmp, label[i], -1, 1, thickness=-1) #우리가 찾은 면적을 직접 그린다.
+                print("[drwaContours] pixel_mask_tmp : {}".format(sum(sum(pixel_mask_tmp))))
+                pixel_mask += pixel_mask_tmp #drawContour를 수행한 이후에 pixel_mask_tmp의 값이 변한다. 따라서 각 text 가 속하는 구역
+                                             #이 모두 1(positive pixel)이 되어 pixel_mask에 전부 저장되는 것이라 할 수 있음.
+                                             #결과적으로 각 text 영역에 속하는 pixel 값들만 1이되어 mask에 덮어 씌어 진다고 할 수있음.
+                                             #pixel-wise semantic segmetation과 유사하게 됨.
+        neg_pixel_mask = (pixel_mask == 0).astype(np.uint8) #0으로 된부분이 모두 1로 바뀌어 negative_pixel만이 표시된다.
+                                                            #결과적으로 text영역이 아닌부분만을 check하게 된다.
+        pixel_mask[pixel_mask != 1] = 0 #1을 넘어간 부분은 0으로 바꾼다. 즉, 중복되어 겹치는 부분은 text가 없다는 것을 판단하겠다.
         # assert not (pixel_mask>1).any()
-        pixel_mask_area = np.count_nonzero(pixel_mask) # total area
+        pixel_mask_area = np.count_nonzero(pixel_mask) # total area //positive pixel로 찍힌 pixel을 모두 count하겠다.
 
         for i in range(label.shape[0]):
             if not ignore[i]:
