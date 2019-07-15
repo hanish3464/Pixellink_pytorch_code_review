@@ -13,7 +13,7 @@ use_crop = False
 use_rotate = True #rotate 를 사용
 # iterations = 10
 gpu = True #gpu 사용관련 parameter
-multi_gpu = True # only useful when gpu=True
+multi_gpu = False # only useful when gpu=True
 pixel_weight = 2
 link_weight = 1
 
