@@ -92,11 +92,7 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
         print("pixelLinkIC15Dataset __getitem__ call /index:" + str(index))
         # print(index, end=" ")
         if self.train:
-<<<<<<< HEAD
-            print("index: {}".format(index))
-=======
             print("train : __getitem__ -> train_data_transform(index)")
->>>>>>> exp
             image, label = self.train_data_transform(index)
         else:
             image, label = self.test_data_transform(index)
@@ -104,6 +100,7 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
 
         pixel_mask, neg_pixel_mask, pixel_pos_weight, link_mask = \
             PixelLinkIC15Dataset.label_to_mask_and_pixel_pos_weight(label, list(image.shape[1:]), version=config.version)
+            #계산이 완료된 후에 dictionary 형태로 반환된다. 
         return {'image': image, 'pixel_mask': pixel_mask, 'neg_pixel_mask': neg_pixel_mask, 'label': label,
                 'pixel_pos_weight': pixel_pos_weight, 'link_mask': link_mask}
 
@@ -294,42 +291,48 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
         pixel_mask[pixel_mask != 1] = 0 #1을 넘어간 부분은 0으로 바꾼다. 즉, 중복되어 겹치는 부분은 text가 없다는 것을 판단하겠다.
         # assert not (pixel_mask>1).any()
         pixel_mask_area = np.count_nonzero(pixel_mask) # total area //positive pixel로 찍힌 pixel을 모두 count하겠다.
-
         for i in range(label.shape[0]):
             if not ignore[i]:
                 pixel_mask_tmp = np.zeros(pixel_mask_size, dtype=np.uint8)
-                cv2.drawContours(pixel_mask_tmp, label[i], -1, 1, thickness=-1)
-                pixel_mask_tmp *= pixel_mask
-                if np.count_nonzero(pixel_mask_tmp) > 0:
-                    real_box_num += 1
-        if real_box_num == 0:
+                cv2.drawContours(pixel_mask_tmp, label[i], -1, 1, thickness=-1) #label[i]는 텍스트박스 i의 4개의 좌표쌍을 들고있다.
+                pixel_mask_tmp *= pixel_mask  #그전에 구했던 pixel_mask와 새롭게 구한것을 곱해서 진짜로 1인 부분만 다시 check
+                                              #그리고 그것을 drawcontours를 통해 그리고 pixel_mask
+                print("pixel_mask_tmp : {} , sum: {}".format(pixel_mask_tmp,sum(pixel_mask_tmp)))
+                if np.count_nonzero(pixel_mask_tmp) > 0:                        #map에 1로 labeling하면서 그리게 된다.
+                    real_box_num += 1 #그렇게 최종적으로 check된 area를 세어서 text_box의 개수를 세겠다.
+
+        if real_box_num == 0: #이미지 내에서 text를 발견하지 못한 case에 해당한다.
             # print("box num = 0")
             return torch.LongTensor(pixel_mask), torch.LongTensor(neg_pixel_mask), torch.Tensor(pixel_weight), torch.LongTensor(link_mask)
-        avg_weight_per_box = pixel_mask_area / real_box_num
+        #pixel_mask에는 text영역의 pixel들이 0,1 맵으로 형성되어있다. box가 없을 경우는 int64 형태로 넘기고 weight는 float형태로 한다.
+        avg_weight_per_box = pixel_mask_area / real_box_num #box의 평균 weight를 mask_area라는 pixel 점들의 합을 박스갯수로 나눈다.
+        #즉, 텍스트 박스크기에 따라서도 weight 값이 조금씩 달라질 수 있다는 것을 암시한다.
 
         for i in range(label.shape[0]): # num of box
             if not ignore[i]:
-                pixel_weight_tmp = np.zeros(pixel_mask_size, dtype=np.float)
+                pixel_weight_tmp = np.zeros(pixel_mask_size, dtype=np.float) 
                 cv2.drawContours(pixel_weight_tmp, [label[i]], -1, avg_weight_per_box, thickness=-1)
-                pixel_weight_tmp *= pixel_mask
+                #평균적인 box크기를 가지고 pixel_weight_tmp에 contour를 그린다.
+                pixel_weight_tmp *= pixel_mask #기존에 구했던 mask 를 곱해서 겹치는 부분만을 골라낸다.
                 area = np.count_nonzero(pixel_weight_tmp) # area per box
-                if area <= 0:
+                if area <= 0: #area가 없다면 다음 text_box를 탐색한다.
                       # print("area label: " + str(label[i]))
                       # print("area:" + str(area))
                       continue
-                pixel_weight_tmp /= area
+                pixel_weight_tmp /= area #있다면 area로 나눠서 weight의 평균을 구한다.
                 # print(pixel_weight_tmp[pixel_weight_tmp>0])
-                pixel_weight += pixel_weight_tmp
+                pixel_weight += pixel_weight_tmp #하나의 box의 weight를 weight sum에 하나씩 더해간다.
 
                 # link mask
-                weight_tmp_nonzero = pixel_weight_tmp.nonzero()
-                # pixel_weight_nonzero = pixel_weight.nonzero()
+                weight_tmp_nonzero = pixel_weight_tmp.nonzero() #0이 아닌 다른 값이 담긴 index를 weight_tmp_nonzero에 저장한다.
+                # pixel_weight_nonzero = pixel_weight.nonzero() #pixel_weight에서 0이 아닌 값들이 담긴 index의 위치를 저장한다.
                 link_mask_tmp = np.zeros(pixel_mask_size, dtype=np.uint8)
                 # for j in range(neighbors): # neighbors directions
+                ##1로 셋팅된 weight pixel에 대해서 이하 아래의 각 이웃의 8방향을 모두 1로 셋팅하겠다.
                 link_mask_tmp[weight_tmp_nonzero] = 1
                 link_mask_shift = np.zeros(link_mask_size, dtype=np.uint8)
-                w_index = weight_tmp_nonzero[1]
-                h_index = weight_tmp_nonzero[0]
+                w_index = weight_tmp_nonzero[1] #width 즉, 가로 index를 w_index에 저장
+                h_index = weight_tmp_nonzero[0] #height 즉, 세로 index를 h_index에 저장
                 w_index1 = np.clip(w_index + 1, a_min=None, a_max=link_mask_size[1] - 1)
                 w_index_1 = np.clip(w_index - 1, a_min=0, a_max=None)
                 h_index1 = np.clip(h_index + 1, a_min=None, a_max=link_mask_size[2] - 1)
@@ -342,8 +345,9 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
                 link_mask_shift[5][h_index_1, w_index] = 1
                 link_mask_shift[6][h_index_1, w_index1] = 1
                 link_mask_shift[7][h_index, w_index1] = 1
-
-                for j in range(neighbors):
+                
+                for j in range(neighbors): #이런식으로 하면 대략link_mask에는 떨어져있는 pixel표시는 사라진다. 붙어있는 instance단위
+                    #에 대해서만 1이 되어 실질적인 instance 사이의 분리가 이루어진다.
                     # +0 to convert bool array to int array
                     link_mask[j] += np.logical_and(link_mask_tmp, link_mask_shift[j]).astype(np.uint8)
         return [torch.LongTensor(pixel_mask), torch.LongTensor(neg_pixel_mask), torch.Tensor(pixel_weight), torch.LongTensor(link_mask)]
