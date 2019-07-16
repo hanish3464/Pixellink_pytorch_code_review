@@ -22,12 +22,14 @@ import ImgLib.ImgTransform as ImgTransform
 from test_model import test_on_train_dataset
 
 # os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
+print("first?")
 parser = argparse.ArgumentParser(description='')
 print("load argparser successfully!")
 parser.add_argument('--train', type=bool, default=False, help='True for train, False for test') # default for test
 parser.add_argument('--retrain', type=bool, default=False, help='True for retrain, False for train') # default for test
 # parser.add_argument('change', metavar='N', type=int, help='an integer for change')
 args = parser.parse_args()
+print(args)
 
 def weight_init(m):
     if isinstance(m, nn.Conv2d):

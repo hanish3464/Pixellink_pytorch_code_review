@@ -2,6 +2,7 @@ import torch.nn as nn
 import config
 
 class Net(nn.Module):
+    print("class net is called!")
     def __init__(self):
         super(Net, self).__init__()
         # TODO: modify padding
