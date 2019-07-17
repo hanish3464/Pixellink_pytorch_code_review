@@ -72,7 +72,7 @@ def train(epoch, iteration, dataloader, my_net, optimizer, optimizer2, device):
             neg_pixel_masks = sample['neg_pixel_mask'].to(device)
             link_masks = sample['link_mask'].to(device)
             pixel_pos_weights = sample['pixel_pos_weight'].to(device)
-            print("before forward debug")
+            print("image size: {}".format(images.size())) #image 개수:24 , channel:3(RGB), size 512*512 
             out_1, out_2 = my_net.forward(images) ##문제발생
             loss_instance = PixelLinkLoss()
             # print(out_2)
