@@ -6,6 +6,7 @@ class Net(nn.Module): #nn에 있는 모듈을 상속받아서 구현한다. netw
         super(Net, self).__init__()
         # TODO: modify padding
         print("[class:Net][def:init]")
+        print("fix")
         self.conv1_1 = nn.Conv2d(3, 64, 3, stride=1, padding=1) #3,64,3 = input image channel, output image channel, 3*3 conv
         self.relu1_1 = nn.ReLU() #activation function : vanishing gradient 문제를 해결있다. x>0 x else 0
         self.conv1_2 = nn.Conv2d(64, 64, 3, stride=1, padding=1) #in : 64 / out: 64 / filter: 3 
