@@ -30,6 +30,7 @@ class Net(nn.Module): #nn에 있는 모듈을 상속받아서 구현한다. netw
         self.conv4_3 = nn.Conv2d(512, 512, 3, stride=1, padding=1) #in: 512 / out: 512 / filter: 3
         self.relu4_3 = nn.ReLU()
         self.pool4 = nn.MaxPool2d(2)
+        print("check pool: {}".format(self.pool4))
         self.conv5_1 = nn.Conv2d(512, 512, 3, stride=1, padding=1) #in: 512 / out: 512 / filter: 3
         self.relu5_1 = nn.ReLU()
         self.conv5_2 = nn.Conv2d(512, 512, 3, stride=1, padding=1) #in: 512 / out: 512 / filter: 3
@@ -63,10 +64,10 @@ class Net(nn.Module): #nn에 있는 모듈을 상속받아서 구현한다. netw
     def forward(self, x):
 
         print("[Class:Net][def:forward]")
-
+        print("[def:foward] conv1_1->relu->conv1_2->relu->pool1")
         x = self.pool1(self.relu1_2(self.conv1_2(self.relu1_1(self.conv1_1(x))))) 
         #[Convolution Stage1](2번) + [Pool1,/2]
-
+        print("[def:forwad] conv2_1->relu->conv2_2->relu")
         x = self.relu2_2(self.conv2_2(self.relu2_1(self.conv2_1(x)))) 
         #[Convolution Stage2](2번)
 
