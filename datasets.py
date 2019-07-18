@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
 from PIL import Image
 import config
@@ -15,7 +16,7 @@ import ImgLib.ImgTransform as ImgTransform
 import ImgLib.util
 class ICDAR15Dataset(Dataset):
     def __init__(self, images_dir, labels_dir):
-        print("ICDAR15Dataset() class init")
+      #  print("ICDAR15Dataset() class init")
         # self.all_images = self.read_datasets(images_dir, config.all_trains)
         self.images_dir = images_dir #config의 적혀있던 directory의 training 사진의 경로가 여기에 저장된다.
         self.labels_dir = labels_dir #config의 적혀있던 directory의 Ground Truth 텍스트의 경로가 여기에 저장된다.
@@ -24,17 +25,17 @@ class ICDAR15Dataset(Dataset):
         #all_labels에는 전처리가 끝나서 refined 된 ground_truth가 들어있다.
 
     def __len__(self):
-        print("len() call!")
+      #  print("len() call!")
         return len(self.all_labels)
 
     def __getitem__(self, index):
-        print("ICDAR15Dataset __getitem__ call")
+     #   print("ICDAR15Dataset __getitem__ call")
         if isinstance(index, int):
             return {'image': self.read_image(self.images_dir, index), 'label': all_labels[index]}
 
     def read_image(self, dir, index):
         index += 1
-        print("read_image call! /index : {}".format(index)) 
+    #    print("read_image call! /index : {}".format(index)) 
         filename = os.path.join(dir, "img_" + str(index) + ".jpg") #random으로 넘어온 index번호에 맞는 이미지를 디렉터리에서 불러온다.
         image = ImgTransform.ReadImage(filename) #filename에 맞는디렉터리에가서 해당이미지를 불러온다.
         return image
@@ -50,7 +51,7 @@ class ICDAR15Dataset(Dataset):
         return res
 
     def read_labels(self, dir, num):
-        print("read_labels() call!")
+   #     print("read_labels() call!")
         res = [[] for i in range(num)] #res 라는 이차원 배열안에 1차원의 list 1000개(ground_truth 개수)를 생성한다.
         for i in range(1, num+1):
             # utf-8_sig for bom_utf-8
@@ -81,18 +82,17 @@ class ICDAR15Dataset(Dataset):
         return res #이 함수를 거치면 1000개의 tmp dictionary의 정보가 담긴 1000개의 element를 가진 ground_truth res가 완성된다.
 
 class PixelLinkIC15Dataset(ICDAR15Dataset):
-    print("PixelLinkIC15Dataset() call")
+    #print("PixelLinkIC15Dataset() call")
+    #print("[class:PixelLinkIC15Dataset]")
     def __init__(self, images_dir, labels_dir, train=True):
-        print("PixelLinkIC15Dataset() class init")
         super(PixelLinkIC15Dataset, self).__init__(images_dir, labels_dir)
         self.train = train
         # self.all_images = torch.Tensor(self.all_images)
 
     def __getitem__(self, index):
-        print("pixelLinkIC15Dataset __getitem__ call /index:" + str(index))
         # print(index, end=" ")
         if self.train:
-            print("train : __getitem__ -> train_data_transform(index)")
+#            #print("train : __getitem__ -> train_data_transform(index)")
             image, label = self.train_data_transform(index)
         else:
             image, label = self.test_data_transform(index)
@@ -105,7 +105,7 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
                 'pixel_pos_weight': pixel_pos_weight, 'link_mask': link_mask}
 
     def test_data_transform(self, index):
-        print("test_transform() call")
+ #       #print("test_transform() call")
         img = self.read_image(self.images_dir, index)
         labels = self.all_labels[index]
         labels, img, size = ImgTransform.ResizeImageWithLabel(labels, (512, 512), data=img)
@@ -114,7 +114,7 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
         return img, labels
 
     def train_data_transform(self, index): #Data augmentation 부분. 같은 image Data를 활용하여 Data를 변형시켜서 수를 늘린다.
-        print("train_data_transform() call")
+  #      #print("train_data_transform() call")
         img = self.read_image(self.images_dir, index) #image 를 불러온다.
         labels = self.all_labels[index] #거기에 맞는 ground_truth 를 불러온다.
 
@@ -279,13 +279,22 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
         for i in range(label.shape[0]): #label.shape[0]는 감지된 최종 box의 총 개수를 담고 있다.
             if not ignore[i]: #실제로 ignore하면 안되는 것들 = 마땅히 detected되어야 하는 text area에 대해서...
                 pixel_mask_tmp = np.zeros(pixel_mask_size, dtype=np.uint8) #똑같은 mask_size로 하나 더 만든다.
-                print("pixel_mask_tmp : {}".format(sum(sum(pixel_mask_tmp))))
+                #print("pixel_mask_tmp : {}".format(sum(sum(pixel_mask_tmp))))
                 cv2.drawContours(pixel_mask_tmp, label[i], -1, 1, thickness=-1) #우리가 찾은 면적을 직접 그린다.
-                print("[drwaContours] pixel_mask_tmp : {}".format(sum(sum(pixel_mask_tmp))))
+                #print("[drwaContours] pixel_mask_tmp : {}".format(sum(sum(pixel_mask_tmp))))
                 pixel_mask += pixel_mask_tmp #drawContour를 수행한 이후에 pixel_mask_tmp의 값이 변한다. 따라서 각 text 가 속하는 구역
                                              #이 모두 1(positive pixel)이 되어 pixel_mask에 전부 저장되는 것이라 할 수 있음.
                                              #결과적으로 각 text 영역에 속하는 pixel 값들만 1이되어 mask에 덮어 씌어 진다고 할 수있음.
                                              #pixel-wise semantic segmetation과 유사하게 됨.
+                ############IMAGE DEBUG#############
+                #plt.subplot(1,2,1)
+                #plt.imshow(pixel_mask, cmap='bone')
+                #plt.title("image {}".format(i))
+                ##print("image text index: {}".format(i))
+                #plt.axis('off')
+                #plt.tight_layout()
+                #plt.show()
+                #time.sleep(1)
         neg_pixel_mask = (pixel_mask == 0).astype(np.uint8) #0으로 된부분이 모두 1로 바뀌어 negative_pixel만이 표시된다.
                                                             #결과적으로 text영역이 아닌부분만을 check하게 된다.
         pixel_mask[pixel_mask != 1] = 0 #1을 넘어간 부분은 0으로 바꾼다. 즉, 중복되어 겹치는 부분은 text가 없다는 것을 판단하겠다.
@@ -297,7 +306,7 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
                 cv2.drawContours(pixel_mask_tmp, label[i], -1, 1, thickness=-1) #label[i]는 텍스트박스 i의 4개의 좌표쌍을 들고있다.
                 pixel_mask_tmp *= pixel_mask  #그전에 구했던 pixel_mask와 새롭게 구한것을 곱해서 진짜로 1인 부분만 다시 check
                                               #그리고 그것을 drawcontours를 통해 그리고 pixel_mask
-                print("pixel_mask_tmp : {} , sum: {}".format(pixel_mask_tmp,sum(pixel_mask_tmp)))
+                #print("pixel_mask_tmp : {} , sum: {}".format(pixel_mask_tmp,sum(pixel_mask_tmp)))
                 if np.count_nonzero(pixel_mask_tmp) > 0:                        #map에 1로 labeling하면서 그리게 된다.
                     real_box_num += 1 #그렇게 최종적으로 check된 area를 세어서 text_box의 개수를 세겠다.
 
@@ -307,6 +316,13 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
         #pixel_mask에는 text영역의 pixel들이 0,1 맵으로 형성되어있다. box가 없을 경우는 int64 형태로 넘기고 weight는 float형태로 한다.
         avg_weight_per_box = pixel_mask_area / real_box_num #box의 평균 weight를 mask_area라는 pixel 점들의 합을 박스갯수로 나눈다.
         #즉, 텍스트 박스크기에 따라서도 weight 값이 조금씩 달라질 수 있다는 것을 암시한다.
+        #plt.subplot(1,2,1)
+        #plt.imshow(pixel_mask, cmap='bone')
+        #plt.title("IMAGE TEXT NUM:: {}".format(label.shape[0]))
+        #plt.axis('off')
+        #plt.tight_layout()
+        #plt.show()
+        #time.sleep(3)
 
         for i in range(label.shape[0]): # num of box
             if not ignore[i]:
@@ -322,7 +338,7 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
                 pixel_weight_tmp /= area #있다면 area로 나눠서 weight의 평균을 구한다.
                 # print(pixel_weight_tmp[pixel_weight_tmp>0])
                 pixel_weight += pixel_weight_tmp #하나의 box의 weight를 weight sum에 하나씩 더해간다.
-
+                
                 # link mask
                 weight_tmp_nonzero = pixel_weight_tmp.nonzero() #0이 아닌 다른 값이 담긴 index를 weight_tmp_nonzero에 저장한다.
                 # pixel_weight_nonzero = pixel_weight.nonzero() #pixel_weight에서 0이 아닌 값들이 담긴 index의 위치를 저장한다.
@@ -350,6 +366,20 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
                     #에 대해서만 1이 되어 실질적인 instance 사이의 분리가 이루어진다.
                     # +0 to convert bool array to int array
                     link_mask[j] += np.logical_and(link_mask_tmp, link_mask_shift[j]).astype(np.uint8)
+        ######IMAGE DEBUG#######
+        #plt.subplot(1,2,1)
+        #plt.imshow(pixel_weight)
+        #plt.title("IMAGE WEIGHT: {}".format(label.shape[0]))
+        #plt.axis('off')
+        #plt.tight_layout()
+        #plt.show()
+        #for i in link_mask:
+         #   plt.subplot(1,2,1)
+          #  plt.imshow(i)
+           # plt.title("IMAGE LINK: {}".format(label.shape[0]))
+            #plt.axis('off')
+            #plt.tight_layout()
+            #plt.show()
         return [torch.LongTensor(pixel_mask), torch.LongTensor(neg_pixel_mask), torch.Tensor(pixel_weight), torch.LongTensor(link_mask)]
 
 if __name__ == '__main__':

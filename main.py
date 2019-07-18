@@ -22,14 +22,11 @@ import ImgLib.ImgTransform as ImgTransform
 from test_model import test_on_train_dataset
 
 # os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
-print("first?")
 parser = argparse.ArgumentParser(description='')
-print("load argparser successfully!")
 parser.add_argument('--train', type=bool, default=False, help='True for train, False for test') # default for test
 parser.add_argument('--retrain', type=bool, default=False, help='True for retrain, False for train') # default for test
 # parser.add_argument('change', metavar='N', type=int, help='an integer for change')
 args = parser.parse_args()
-print(args)
 
 def weight_init(m):
     if isinstance(m, nn.Conv2d):
@@ -57,13 +54,13 @@ def retrain():
 
 
 def train(epoch, iteration, dataloader, my_net, optimizer, optimizer2, device):
-    print("train() call")
+    print("[def:train]")
     for i in range(epoch): #epoch(전첸 training set 1000개를 한번도는 것) 6만번 전체6만번을 돌리겠다.
-        print("train() -> for(epoch)")
+        print("[dataloader][def:getitem]")
         for i_batch, sample in enumerate(dataloader): #dataloader를 가지고 dataset을 로드하여 사용한다. enumerate에서
-            print("train()-> for(epoch)-> enumerate(dataloader)") #dataloader가 불려서 getitem을 부른다. 
+            #dataloader가 불려서 getitem을 부른다. 
             #i_batch : index 에 해당. sample은 dataloader안에 들은 content에 해당한다.
-            print("sample {}".format(sample.keys())) #dataloader 안에 content로 dict가 존재한다.
+            #print("sample {}".format(sample.keys())) #dataloader 안에 content로 dict가 존재한다.
             #image, pixel_mask, neg_pixel_mask, label, pixel_pos_weight, link_mask 의 key들이 존재하며, 안에는 3차원의 값이 들어있다.
             start = time.time()
             images = sample['image'].to(device) #device에 연결된 GPU로 image연산을 맡긴 image 변수 생성.
@@ -72,7 +69,7 @@ def train(epoch, iteration, dataloader, my_net, optimizer, optimizer2, device):
             neg_pixel_masks = sample['neg_pixel_mask'].to(device)
             link_masks = sample['link_mask'].to(device)
             pixel_pos_weights = sample['pixel_pos_weight'].to(device)
-            print("image size: {}".format(images.size())) #image 개수:24 , channel:3(RGB), size 512*512 
+            #print("image size: {}".format(images.size())) #image 개수:24 , channel:3(RGB), size 512*512 
             out_1, out_2 = my_net.forward(images) ##문제발생
             loss_instance = PixelLinkLoss()
             # print(out_2)
@@ -110,16 +107,16 @@ def train(epoch, iteration, dataloader, my_net, optimizer, optimizer2, device):
             iteration += 1
 
 def main():
-    print("argpaser() ==> main()")
+    print("[def:main]")
     ##print("config_image_dir : {}, config_labels_dir : {}".format(config.train_image_dir, config_train_image_dir))
     dataset = datasets.PixelLinkIC15Dataset(config.train_images_dir, config.train_labels_dir) #train_image와 ground_truch 경로가 전달.
-    print("dataset type : {}\ndataset info : {}\n dataset len : {}".format(type(dataset), dataset, len(dataset)))
+    #print("dataset type : {}\ndataset info : {}\n dataset len : {}".format(type(dataset), dataset, len(dataset)))
     sampler = WeightedRandomSampler([1/len(dataset)]*len(dataset), config.batch_size, replacement=True)
-    print("sampler: {}".format(len(sampler)))
+    #print("sampler: {}".format(len(sampler)))
     dataloader = DataLoader(dataset, batch_size=config.batch_size, sampler=sampler) #dataloader는 np의 array와 유사한  tensor로 저장.    ## dataloader = DataLoader(dataset, config.batch_size, shuffle=True)
-    print("my_net call")
+    #print("my_net call")
     my_net = net.Net()
-    
+    print("[def:main][GPU check]")
     if config.gpu:
         device = torch.device("cuda:0") #CUDA는 NVIDIA에서 개발한 GPU사용을 위한 툴이라고 할 수 있다. #계산 device로 GPU를 쓰겠다.
         my_net = my_net.cuda() #net같은 network 역시 GPU로 하겠다.
@@ -127,29 +124,30 @@ def main():
             my_net = nn.DataParallel(my_net) #parallel한 방식으로 나눠서 진행하겠다.
     else:
         device = torch.device("cpu") #그렇지 않다면 계산 device를 CPU로 연결하겠다.
-    print("config.gpu: check success!")
+    #print("config.gpu: check success!")
     ##nn.init.xavier_uniform_(list(my_net.parameters()))
     my_net.apply(weight_init) #network weight parameter를 initialize 한다.
     optimizer = optim.SGD(my_net.parameters(), lr=config.learning_rate, momentum=config.momentum, weight_decay=config.weight_decay)
     #weight_decay : L2 regulization
     ##if args.change:
     #Stochastic Gradient Descent(SGD)로 미니 배치사이즈를 이용해 gradient descent를 진행하며 optimization한다. 
-    print("parameter : {}".format(my_net.parameters()))
+    #print("parameter : {}".format(my_net.parameters()))
     optimizer2 = optim.SGD(my_net.parameters(), lr=config.learning_rate2, momentum=config.momentum, weight_decay=config.weight_decay)
     ##else:
     ##     optimizer2 = optim.SGD(my_net.parameters(), lr=config.learning_rate, momentum=config.momentum, weight_decay=config.weight_decay)
-    print("Go to train")
+    #print("Go to train")
     iteration = 0
+    print("[def:train]")
     train(config.epoch, iteration, dataloader, my_net, optimizer, optimizer2, device) #여기서 training 시작
 
 if __name__ == "__main__":
     if args.retrain:
-        print("argparser call retrain()")
+        print("[argparser][def:retrain]")
         retrain()
     elif args.train:
-        print("argparser call main()")
+        print("[argparser][def:main]")
         main()
     else:
-        print("argparser call test_on_train_dataset()")
+        print("[argparser][def:test_on_train_dataset]")
         test_on_train_dataset()
         test_model(i)
