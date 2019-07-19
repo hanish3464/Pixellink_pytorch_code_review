@@ -25,6 +25,10 @@ from test_model import test_on_train_dataset
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--train', type=bool, default=False, help='True for train, False for test') # default for test
 parser.add_argument('--retrain', type=bool, default=False, help='True for retrain, False for train') # default for test
+###added version + batch size / epoch####
+parser.add_argument('--epoch', type=int,default=60000, help='value is epoch size')
+parser.add_argument('--batch', type=int,default=24, help='value is batch size')
+
 # parser.add_argument('change', metavar='N', type=int, help='an integer for change')
 args = parser.parse_args()
 
@@ -71,6 +75,7 @@ def train(epoch, iteration, dataloader, my_net, optimizer, optimizer2, device):
             link_masks = sample['link_mask'].to(device)
             pixel_pos_weights = sample['pixel_pos_weight'].to(device)
             #print("image size: {}".format(images.size())) #image 개수:24 , channel:3(RGB), size 512*512 
+            time.sleep(10)
             out_1, out_2 = my_net.forward(images) ##문제발생
             loss_instance = PixelLinkLoss()
             # print(out_2)
@@ -99,7 +104,7 @@ def train(epoch, iteration, dataloader, my_net, optimizer, optimizer2, device):
                 optimizer2.step()
             end = time.time()
             print("time: " + str(end - start))
-            if (iteration + 1) % 200 == 0:
+            if (iteration + 1) % 1500 == 0:
                 # if args.change:
                 #     saving_model_dir = config.saving_model_dir3
                 # else:
@@ -109,6 +114,7 @@ def train(epoch, iteration, dataloader, my_net, optimizer, optimizer2, device):
 
 def main():
 #    print("[def:main]")
+    #print("epoch : {} batch : {}".format(config.epoch, config.batch)) 
     ##print("config_image_dir : {}, config_labels_dir : {}".format(config.train_image_dir, config_train_image_dir))
     dataset = datasets.PixelLinkIC15Dataset(config.train_images_dir, config.train_labels_dir) #train_image와 ground_truch 경로가 전달.
     #print("dataset type : {}\ndataset info : {}\n dataset len : {}".format(type(dataset), dataset, len(dataset)))
@@ -139,6 +145,7 @@ def main():
     #print("Go to train")
     iteration = 0
 #    print("[def:train]")
+#    print("epoch: {} batch_size {}".format(config.epoch, config.batch_size))
     train(config.epoch, iteration, dataloader, my_net, optimizer, optimizer2, device) #여기서 training 시작
 
 if __name__ == "__main__":
@@ -147,6 +154,9 @@ if __name__ == "__main__":
         retrain()
     elif args.train:
 #        print("[argparser][def:main]")
+#        print("config.epoch : {} config.batch_size : {}".format(config.epoch, config.batch_size))
+        config.epoch = args.epoch
+        config.batch_size = args.batch
         main()
     else:
 #        print("[argparser][def:test_on_train_dataset]")
