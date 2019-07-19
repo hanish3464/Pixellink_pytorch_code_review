@@ -1,4 +1,6 @@
 #import 하는 순간 안에 있는 모든 함수가 순서대로 실행됨.
+#import matplotlib.pyplot as plt
+#import torchvision.transforms as transforms
 import net
 import numpy as np
 import torch
@@ -61,7 +63,7 @@ def retrain():
 def train(epoch, iteration, dataloader, my_net, optimizer, optimizer2, device):
 #    print("[def:train]")
     for i in range(epoch): #epoch(전첸 training set 1000개를 한번도는 것) 6만번 전체6만번을 돌리겠다.
-        print("epoch: {}".format(i))
+###         print("epoch: {}".format(i))
 #        print("[dataloader][def:getitem]")
         for i_batch, sample in enumerate(dataloader): #dataloader를 가지고 dataset을 로드하여 사용한다. enumerate에서
             #dataloader가 불려서 getitem을 부른다. 
@@ -71,30 +73,34 @@ def train(epoch, iteration, dataloader, my_net, optimizer, optimizer2, device):
             start = time.time()
             images = sample['image'].to(device) #device에 연결된 GPU로 image연산을 맡긴 image 변수 생성.
             # print(images.shape, end=" ")
-            pixel_masks = sample['pixel_mask'].to(device) #각각 마찬가지로 sample에 들어있는 키들 연ㅅ나 역시 GPU에 할당.
+            pixel_masks = sample['pixel_mask'].to(device) #각각 마찬가지로 sample에 들어있는 키들 연ㅅ나 역시 GPU에 할당.   
+           # plt.imshow(transforms.ToPILImage()(pixel_masks))
+           # plt.show()
             neg_pixel_masks = sample['neg_pixel_mask'].to(device)
             link_masks = sample['link_mask'].to(device)
             pixel_pos_weights = sample['pixel_pos_weight'].to(device)
             #print("image size: {}".format(images.size())) #image 개수:24 , channel:3(RGB), size 512*512 
             #time.sleep(10)
-            out_1, out_2 = my_net.forward(images) ##문제발생
+            out_1, out_2 = my_net.forward(images) ##out1 : text/non-text prediction , out2: link prediction
+            print("[def:train][pixelLinkLoss] init")
             loss_instance = PixelLinkLoss()
             # print(out_2)
-
+            print("[def:train][class:criterion][def:pixel_loss]")
             pixel_loss_pos, pixel_loss_neg = loss_instance.pixel_loss(out_1, pixel_masks, neg_pixel_masks, pixel_pos_weights)
+###            print("[def:train][class:criterion][def:pixel_loss]")
             pixel_loss = pixel_loss_pos + pixel_loss_neg
             link_loss_pos, link_loss_neg = loss_instance.link_loss(out_2, link_masks)
             link_loss = link_loss_pos + link_loss_neg
             losses = config.pixel_weight * pixel_loss + config.link_weight * link_loss
 #            print("debug check after loss")
-            print("iteration %d" % iteration, end=": ")
-            print("pixel_loss: " + str(pixel_loss.tolist()), end=", ")
+###            print("iteration %d" % iteration, end=": ")
+###            print("pixel_loss: " + str(pixel_loss.tolist()), end=", ")
             # print("pixel_loss_pos: " + str(pixel_loss_pos.tolist()), end=", ")
             # print("pixel_loss_neg: " + str(pixel_loss_neg.tolist()), end=", ")
-            print("link_loss: " + str(link_loss.tolist()), end=", ")
+###            print("link_loss: " + str(link_loss.tolist()), end=", ")
             # print("link_loss_pos: " + str(link_loss_pos.tolist()), end=", ")
             # print("link_loss_neg: " + str(link_loss_neg.tolist()), end=", ")
-            print("total loss: " + str(losses.tolist()), end=", ")
+###            print("total loss: " + str(losses.tolist()), end=", ")
             if iteration < 100:
                 optimizer.zero_grad()
                 losses.backward()
@@ -104,7 +110,7 @@ def train(epoch, iteration, dataloader, my_net, optimizer, optimizer2, device):
                 losses.backward()
                 optimizer2.step()
             end = time.time()
-            print("time: " + str(end - start))
+###            print("time: " + str(end - start))
             if (iteration + 1) % config.iteration == 0:
                 # if args.change:
                 #     saving_model_dir = config.saving_model_dir3

@@ -1,4 +1,4 @@
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
 from PIL import Image
 import config
@@ -14,6 +14,7 @@ import numpy as np
 from torchvision import transforms
 import ImgLib.ImgTransform as ImgTransform
 import ImgLib.util
+import torch.nn as nn
 class ICDAR15Dataset(Dataset):
     def __init__(self, images_dir, labels_dir):
       #  print("ICDAR15Dataset() class init")
@@ -290,7 +291,7 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
                 #plt.subplot(1,2,1)
                 #plt.imshow(pixel_mask, cmap='bone')
                 #plt.title("image {}".format(i))
-                ##print("image text index: {}".format(i))
+                #print("image text index: {}".format(i))
                 #plt.axis('off')
                 #plt.tight_layout()
                 #plt.show()
@@ -317,10 +318,15 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
         avg_weight_per_box = pixel_mask_area / real_box_num #box의 평균 weight를 mask_area라는 pixel 점들의 합을 박스갯수로 나눈다.
         #즉, 텍스트 박스크기에 따라서도 weight 값이 조금씩 달라질 수 있다는 것을 암시한다.
         #plt.subplot(1,2,1)
+        #softmax_layer = nn.Softmax2d()
+        #softmax_pixel_mask = softmax_layer(pixel_mask)
         #plt.imshow(pixel_mask, cmap='bone')
+        #plt.imshow(softmax_pixel_mask, cmap='bone')
         #plt.title("IMAGE TEXT NUM:: {}".format(label.shape[0]))
+        #plt.title("softmax")
         #plt.axis('off')
         #plt.tight_layout()
+        #plt.show()
         #plt.show()
         #time.sleep(3)
 
@@ -380,6 +386,7 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
             #plt.axis('off')
             #plt.tight_layout()
             #plt.show()
+        #print(pixel_mask)
         return [torch.LongTensor(pixel_mask), torch.LongTensor(neg_pixel_mask), torch.Tensor(pixel_weight), torch.LongTensor(link_mask)]
 
 if __name__ == '__main__':

@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import config
@@ -20,10 +21,15 @@ class PixelLinkLoss(object):
         self.area = None
         self.neg_area = None
 
-    def pixel_loss(self, input, target, neg_pixel_masks, pos_weight):
-        batch_size = input.size(0)
-        softmax_input = self.softmax_layer(input)
-
+    def pixel_loss(self, input, target, neg_pixel_masks, pos_weight): 
+        #parameter : inbput = out_1, target = pixel_masks, neg_pixel_masks = neg_pixel_masks, pos_weight = pixel_pos_weights
+        batch_size = input.size(0) #pixel_masks 는 비트맵형식으로 text 영역 들어있음 배치사이즈 5
+        print("target size : {}".format(target.size())) #5*256*256 batch * height * width
+        print("input size : {}".format(input.size())) #5*2*256*256 batch * channel(text/non text) * height * width
+        
+        softmax_input = self.softmax_layer(input) #모든 pixel의 weight 합이 1이 되게하는 확률값으로 변환.
+        #softmax는 점수로 나온 결과를 전체 합계가 1이 되는 0과 1사이의 값으로 변경해준다. 
+        
         self.pixel_cross_entropy = self.pixel_cross_entropy_layer(input, target)
         self.area = torch.sum(target.view(batch_size, -1), dim=1)
         int_area = self.area.to(torch.int).data.tolist()

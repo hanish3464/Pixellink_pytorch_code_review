@@ -66,18 +66,19 @@ class Net(nn.Module): #nn에 있는 모듈을 상속받아서 구현한다. netw
 
 #        print("[Class:Net][def:forward]")
 #        print("[def:forward][conv stage1 + pool1]")
-        x = self.pool1(self.relu1_2(self.conv1_2(self.relu1_1(self.conv1_1(x))))) 
+        x = self.pool1(self.relu1_2(self.conv1_2(self.relu1_1(self.conv1_1(x)))))
+        ##print("conv stage1: {}".format(x.size()))
         #[Convolution Stage1](2번) + [Pool1,/2]
-        print("[def:forward][conv stage2]")
+#        print("[def:forward][conv stage2]")
         x = self.relu2_2(self.conv2_2(self.relu2_1(self.conv2_1(x)))) 
         #[Convolution Stage2](2번)
-
+        ##print("conv stage2: {}".format(x.size()))
         l1_1x = self.out1_1(x) #[conv 1x1, 2] Text/non-text Prediction /After [conv stage2]
         l1_2x = self.out1_2(x) #[conv 1x1, 16] Link Prediction /After [conv stage2]
 #        print("[def:forward][pool2 + conv stage3]")
         x = self.relu3_3(self.conv3_3(self.relu3_2(self.conv3_2(self.relu3_1(self.conv3_1(self.pool2(x))))))) 
         #[Pool2, /2] + [Convolution Stage3](3번) 
-        
+        ##print("conv stage3: {}".format(x.size()))
         l2_1x = self.out2_1(x) #[conv 1x1, 2]  Text/non-text Prediction /After [conv stage3]
         l2_2x = self.out2_2(x) #[conv 1x1, 16] Link Prediction /After [conv stage3]
 #        print("[def:forward][pool3 + conv stage4]")
