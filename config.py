@@ -1,10 +1,10 @@
 
-version = "4s"
+version = "2s"
 epoch = 60000
 learning_rate = 1e-3
 learning_rate2 = 1e-2
 all_trains = 1000 #read_labels() 를 호출할때 num parameter의 argument에 해당함. 사진이 1000장 있으니 1000장 넘어간다.
-batch_size = 1 #read_image call을 해서 24번 불러옴
+batch_size = 5 #read_image call을 해서 24번 불러옴
 momentum = 0.9 #momentum은 gradient descent를 하는 과정에서 일종에 관성을 주는 방식으로 과거의 이동방식을 기억하는 것을 말한다.
                #보통 0.9정도의 momentum term의 값을 사용한다.
 weight_decay = 5e-4 #regularization 의 parameter lamda라고 할 수 있다. 

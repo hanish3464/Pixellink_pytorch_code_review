@@ -5,7 +5,7 @@ class Net(nn.Module): #nn에 있는 모듈을 상속받아서 구현한다. netw
     def __init__(self):
         super(Net, self).__init__()
         # TODO: modify padding
-        print("[class:Net][def:init]")
+#        print("[class:Net][def:init]")
         #print("fix")
         self.conv1_1 = nn.Conv2d(3, 64, 3, stride=1, padding=1) #3,64,3 = input image channel, output image channel, 3*3 conv
         self.relu1_1 = nn.ReLU() #activation function : vanishing gradient 문제를 해결있다. x>0 x else 0
@@ -64,8 +64,8 @@ class Net(nn.Module): #nn에 있는 모듈을 상속받아서 구현한다. netw
 
     def forward(self, x):
 
-        print("[Class:Net][def:forward]")
-        print("[def:forward][conv stage1 + pool1]")
+#        print("[Class:Net][def:forward]")
+#        print("[def:forward][conv stage1 + pool1]")
         x = self.pool1(self.relu1_2(self.conv1_2(self.relu1_1(self.conv1_1(x))))) 
         #[Convolution Stage1](2번) + [Pool1,/2]
         print("[def:forward][conv stage2]")
@@ -74,44 +74,44 @@ class Net(nn.Module): #nn에 있는 모듈을 상속받아서 구현한다. netw
 
         l1_1x = self.out1_1(x) #[conv 1x1, 2] Text/non-text Prediction /After [conv stage2]
         l1_2x = self.out1_2(x) #[conv 1x1, 16] Link Prediction /After [conv stage2]
-        print("[def:forward][pool2 + conv stage3]")
+#        print("[def:forward][pool2 + conv stage3]")
         x = self.relu3_3(self.conv3_3(self.relu3_2(self.conv3_2(self.relu3_1(self.conv3_1(self.pool2(x))))))) 
         #[Pool2, /2] + [Convolution Stage3](3번) 
         
         l2_1x = self.out2_1(x) #[conv 1x1, 2]  Text/non-text Prediction /After [conv stage3]
         l2_2x = self.out2_2(x) #[conv 1x1, 16] Link Prediction /After [conv stage3]
-        print("[def:forward][pool3 + conv stage4]")
+#        print("[def:forward][pool3 + conv stage4]")
         x = self.relu4_3(self.conv4_3(self.relu4_2(self.conv4_2(self.relu4_1(self.conv4_1(self.pool3(x)))))))
         #[Convolution Stage4](3번)
         
         l3_1x = self.out3_1(x) #[conv 1x1, 2] Text/non-text Prediction /After [conv stage4]
         l3_2x = self.out3_2(x) #[conv 1x1, 16] Link Prediction /After [conv stage4]
-        print("[def:forward][pool4 + conv stage5]")
+#        print("[def:forward][pool4 + conv stage5]")
         x = self.relu5_3(self.conv5_3(self.relu5_2(self.conv5_2(self.relu5_1(self.conv5_1(self.pool4(x)))))))
         #[pool4, /2] + [Convolution Stage5](3번)
 
         l4_1x = self.out4_1(x) #[conv 1x1, 2] Text/non-text Prediction /After [conv stage5]
         l4_2x = self.out4_2(x) #[conv 1x1, 16] Link Prediction /After [conv stage5]
-        print("[def:forward][pool5 + conv6,7]")
+#        print("[def:forward][pool5 + conv6,7]")
         x = self.relu7(self.conv7(self.relu6(self.conv6(self.pool5(x)))))
         #[pool5, /1] + [FCnet -> Convolution 6,7]
 
         l5_1x = self.out5_1(x) #[conv 1x1, 2] Text/non-text Prediction /After [conv 6,7]
         l5_2x = self.out5_2(x) #[conv 1x1, 16] Link Prediction /After [conv 6,7]
-        print("[def:forward][upsampling 1]")
+#        print("[def:forward][upsampling 1]")
         upsample1_1 = nn.functional.upsample(l5_1x + l4_1x, scale_factor=2, mode="bilinear", align_corners=True)
         #Bi-linear Interporation 방식을 이용하여 Image 의 해상도를 깨지않고 Upsampleing 한다.
         #[conv stage 5] + [conv 6,7]의 Text/non-text Prediction 의 결과에 대한 Upsampling.
-        print("[def:forward][upsampling 2]")
+#        print("[def:forward][upsampling 2]")
         upsample2_1 = nn.functional.upsample(upsample1_1 + l3_1x, scale_factor=2, mode="bilinear", align_corners=True)
         #마찬가지의 방식으로 Upsampling
         #[Upsample1_1] + [conv stage 4]의 Text/non-text Prediction의 결과에 대한 Upsampling
         
         #마찬가지의 방식으로 Upsampling을 진행한다. version 2s라면 한번 더 진행한다.
         if config.version == "2s":
-            print("[def:forward][upsampling 3]")
+#            print("[def:forward][upsampling 3]")
             upsample3_1 = nn.functional.upsample(upsample2_1 + l2_1x, scale_factor=2, mode="bilinear", align_corners=True)
-            print("[def:forward][finish Text/non-text Prediction]")
+#            print("[def:forward][finish Text/non-text Prediction]")
             out_1 = upsample3_1 + l1_1x
         else:
             out_1 = upsample2_1 + l2_1x
@@ -121,7 +121,7 @@ class Net(nn.Module): #nn에 있는 모듈을 상속받아서 구현한다. netw
         upsample2_2 = nn.functional.upsample(upsample1_2 + l3_2x, scale_factor=2, mode="bilinear", align_corners=True)
         if config.version == "2s":
             upsample3_2 = nn.functional.upsample(upsample2_2 + l2_2x, scale_factor=2, mode="bilinear", align_corners=True)
-            print("[def:forward][finish link Prediction]")
+#            print("[def:forward][finish link Prediction]")
             out_2 = upsample3_2 + l1_2x
         else:
             out_2 = upsample2_2 + l2_2x

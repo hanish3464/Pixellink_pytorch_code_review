@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
 from PIL import Image
 import config
@@ -140,7 +140,7 @@ class PixelLinkIC15Dataset(ICDAR15Dataset):
 
     @staticmethod
     def filter_labels(labels, method):
-        print("@staticmethod filter_labels() call")
+#        print("@staticmethod filter_labels() call")
         """
         method: "msi" for min area ignore, "rai" for remain area ignore
         """

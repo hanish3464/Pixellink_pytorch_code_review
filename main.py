@@ -54,9 +54,9 @@ def retrain():
 
 
 def train(epoch, iteration, dataloader, my_net, optimizer, optimizer2, device):
-    print("[def:train]")
+#    print("[def:train]")
     for i in range(epoch): #epoch(전첸 training set 1000개를 한번도는 것) 6만번 전체6만번을 돌리겠다.
-        print("[dataloader][def:getitem]")
+#        print("[dataloader][def:getitem]")
         for i_batch, sample in enumerate(dataloader): #dataloader를 가지고 dataset을 로드하여 사용한다. enumerate에서
             #dataloader가 불려서 getitem을 부른다. 
             #i_batch : index 에 해당. sample은 dataloader안에 들은 content에 해당한다.
@@ -79,7 +79,7 @@ def train(epoch, iteration, dataloader, my_net, optimizer, optimizer2, device):
             link_loss_pos, link_loss_neg = loss_instance.link_loss(out_2, link_masks)
             link_loss = link_loss_pos + link_loss_neg
             losses = config.pixel_weight * pixel_loss + config.link_weight * link_loss
-            print("debug check after loss")
+#            print("debug check after loss")
             print("iteration %d" % iteration, end=": ")
             print("pixel_loss: " + str(pixel_loss.tolist()), end=", ")
             # print("pixel_loss_pos: " + str(pixel_loss_pos.tolist()), end=", ")
@@ -107,7 +107,7 @@ def train(epoch, iteration, dataloader, my_net, optimizer, optimizer2, device):
             iteration += 1
 
 def main():
-    print("[def:main]")
+#    print("[def:main]")
     ##print("config_image_dir : {}, config_labels_dir : {}".format(config.train_image_dir, config_train_image_dir))
     dataset = datasets.PixelLinkIC15Dataset(config.train_images_dir, config.train_labels_dir) #train_image와 ground_truch 경로가 전달.
     #print("dataset type : {}\ndataset info : {}\n dataset len : {}".format(type(dataset), dataset, len(dataset)))
@@ -116,7 +116,7 @@ def main():
     dataloader = DataLoader(dataset, batch_size=config.batch_size, sampler=sampler) #dataloader는 np의 array와 유사한  tensor로 저장.    ## dataloader = DataLoader(dataset, config.batch_size, shuffle=True)
     #print("my_net call")
     my_net = net.Net()
-    print("[def:main][GPU check]")
+#    print("[def:main][GPU check]")
     if config.gpu:
         device = torch.device("cuda:0") #CUDA는 NVIDIA에서 개발한 GPU사용을 위한 툴이라고 할 수 있다. #계산 device로 GPU를 쓰겠다.
         my_net = my_net.cuda() #net같은 network 역시 GPU로 하겠다.
@@ -137,17 +137,17 @@ def main():
     ##     optimizer2 = optim.SGD(my_net.parameters(), lr=config.learning_rate, momentum=config.momentum, weight_decay=config.weight_decay)
     #print("Go to train")
     iteration = 0
-    print("[def:train]")
+#    print("[def:train]")
     train(config.epoch, iteration, dataloader, my_net, optimizer, optimizer2, device) #여기서 training 시작
 
 if __name__ == "__main__":
     if args.retrain:
-        print("[argparser][def:retrain]")
+#        print("[argparser][def:retrain]")
         retrain()
     elif args.train:
-        print("[argparser][def:main]")
+#        print("[argparser][def:main]")
         main()
     else:
-        print("[argparser][def:test_on_train_dataset]")
+#        print("[argparser][def:test_on_train_dataset]")
         test_on_train_dataset()
         test_model(i)
