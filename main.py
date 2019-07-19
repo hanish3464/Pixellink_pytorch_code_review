@@ -56,6 +56,7 @@ def retrain():
 def train(epoch, iteration, dataloader, my_net, optimizer, optimizer2, device):
 #    print("[def:train]")
     for i in range(epoch): #epoch(전첸 training set 1000개를 한번도는 것) 6만번 전체6만번을 돌리겠다.
+        print("epoch: {}".format(epoch))
 #        print("[dataloader][def:getitem]")
         for i_batch, sample in enumerate(dataloader): #dataloader를 가지고 dataset을 로드하여 사용한다. enumerate에서
             #dataloader가 불려서 getitem을 부른다. 
