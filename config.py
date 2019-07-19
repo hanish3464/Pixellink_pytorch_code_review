@@ -11,7 +11,7 @@ weight_decay = 5e-4 #regularization 의 parameter lamda라고 할 수 있다.
 dilation = True
 use_crop = False
 use_rotate = True #rotate 를 사용
-# iterations = 10
+iteration = 1500
 gpu = True #gpu 사용관련 parameter
 multi_gpu = False # only useful when gpu=True
 pixel_weight = 2
